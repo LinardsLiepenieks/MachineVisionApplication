@@ -70,7 +70,6 @@ const RecordPage: React.FC = () => {
 	}, [connectionStatus, router]);
 
 	useEffect(() => {
-		console.log("RUNNING", lastTranscribedMessage);
 		if (
 			lastTranscribedMessage &&
 			lastTranscribedMessage.type === "transcribe_response"

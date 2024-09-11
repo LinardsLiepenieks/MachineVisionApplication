@@ -87,12 +87,12 @@ export const ConnectivityProvider: React.FC<ConnectivityProviderProps> = ({
 
 		setConnectionStatus("connecting");
 
-		try {
-			const newSocket = new WebSocket(url, key);
-			setSocket(newSocket);
+		const newSocket = new WebSocket(url, key);
+		setSocket(newSocket);
 
-			// Connection opened
-			newSocket.addEventListener("open", async () => {
+		// Connection opened
+		try {
+			/*newSocket.addEventListener("open", async () => {
 				console.log("WebSocket connection opened");
 				setConnectionStatus("connected");
 				addCredential(url, key)
@@ -100,7 +100,7 @@ export const ConnectivityProvider: React.FC<ConnectivityProviderProps> = ({
 					.catch((error) =>
 						console.error("Error: saving credentials: ", error)
 					);
-			});
+			});*/
 
 			newSocket.addEventListener("message", (event) => {
 				const message = JSON.parse(event.data);
@@ -110,6 +110,7 @@ export const ConnectivityProvider: React.FC<ConnectivityProviderProps> = ({
 						setConnectionStatus("connected");
 						addCredential(url, key)
 							.then(() => router.replace("/(tabs)/record"))
+							.then(() => console.log("Connection Successful"))
 							.catch((error) =>
 								console.error("Error: saving credentials: ", error)
 							);
@@ -150,9 +151,13 @@ export const ConnectivityProvider: React.FC<ConnectivityProviderProps> = ({
 					console.log(
 						`WebSocket connection closed cleanly, code=${event.code}, reason=${event.reason}`
 					);
+				} else if (event.code === 4001) {
+					console.error("Route rejected - check for typos code=4001");
+					Alert.alert("Route rejected - check for typos");
 				} else {
-					console.log(event);
-					console.error("WebSocket connection died");
+					console.error(
+						`WebSocket connection closed with code=${event.code} and reason ${event.reason}`
+					);
 				}
 				setConnectionStatus("disconnected");
 			});
