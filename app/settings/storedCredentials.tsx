@@ -1,12 +1,5 @@
-import React from "react";
-import {
-	View,
-	Text,
-	FlatList,
-	StyleSheet,
-	Pressable,
-	Alert,
-} from "react-native";
+import React, { useEffect, useState } from "react";
+import { View, Text, FlatList, StyleSheet, Pressable, Alert } from "react-native";
 import { useConnectivity } from "@/contexts/ConnectivityContext";
 import { useCredentials, Credential } from "@/contexts/CredentialsContext";
 import { useColorScheme } from "react-native";
@@ -34,12 +27,20 @@ const StoredCredentialsScreen: React.FC = () => {
 	const inputs = createInputsStyles(colors);
 	const containers = createContainerStyles(colors);
 	const text = createTextStyles(colors);
+	const [pendingConnect, setPendingConnect] = useState(false);
 
 	/**
 	 * Handles the press event on a credential item
 	 * @param {string} url - The URL of the selected credential
 	 * @param {string} key - The key of the selected credential
 	 */
+	useEffect(() => {
+		if (pendingConnect) {
+			handleConnect();
+			setPendingConnect(false);
+		}
+	}, [pendingConnect]);
+
 	const handleCredentialPress = (url: string, key: string) => {
 		Alert.alert("Connect", "Do you want to connect using these credentials?", [
 			{
@@ -51,7 +52,7 @@ const StoredCredentialsScreen: React.FC = () => {
 				onPress: () => {
 					setUrl(url);
 					setKey(key);
-					handleConnect();
+					setPendingConnect(true);
 				},
 			},
 		]);
@@ -62,21 +63,17 @@ const StoredCredentialsScreen: React.FC = () => {
 	 * @param {string} id - The id of the credential to be removed
 	 */
 	const handleRemoveCredential = (id: string) => {
-		Alert.alert(
-			"Remove Credential",
-			"Are you sure you want to remove this credential?",
-			[
-				{
-					text: "Cancel",
-					style: "cancel",
-				},
-				{
-					text: "Remove",
-					onPress: () => removeCredential(id),
-					style: "destructive",
-				},
-			]
-		);
+		Alert.alert("Remove Credential", "Are you sure you want to remove this credential?", [
+			{
+				text: "Cancel",
+				style: "cancel",
+			},
+			{
+				text: "Remove",
+				onPress: () => removeCredential(id),
+				style: "destructive",
+			},
+		]);
 	};
 
 	/**
@@ -89,11 +86,8 @@ const StoredCredentialsScreen: React.FC = () => {
 			<Pressable
 				style={styles.credentialInfo}
 				onPress={() => handleCredentialPress(item.url, item.key)}>
-				<Text style={[text.textMd, text.textStrong, { color: colors.text }]}>
-					{item.url}
-				</Text>
-				<Text
-					style={[text.textSm, text.textOpaque, { color: colors.textSubtle }]}>
+				<Text style={[text.textMd, text.textStrong, { color: colors.text }]}>{item.url}</Text>
+				<Text style={[text.textSm, text.textOpaque, { color: colors.textSubtle }]}>
 					{item.key.slice(0, 5)}...
 				</Text>
 			</Pressable>

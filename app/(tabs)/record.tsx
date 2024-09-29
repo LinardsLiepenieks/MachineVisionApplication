@@ -70,10 +70,7 @@ const RecordPage: React.FC = () => {
 	}, [connectionStatus, router]);
 
 	useEffect(() => {
-		if (
-			lastTranscribedMessage &&
-			lastTranscribedMessage.type === "transcribe_response"
-		) {
+		if (lastTranscribedMessage && lastTranscribedMessage.type === "transcribe_response") {
 			setTranscribedText(lastTranscribedMessage.message);
 			setTextAreaState("normal");
 		}

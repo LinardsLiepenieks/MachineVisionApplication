@@ -1,11 +1,5 @@
 // src/contexts/ConnectivityContext.tsx
-import React, {
-	createContext,
-	useState,
-	useContext,
-	ReactNode,
-	useEffect,
-} from "react";
+import React, { createContext, useState, useContext, ReactNode, useEffect } from "react";
 import { Alert } from "react-native";
 import { useRouter } from "expo-router";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -42,26 +36,20 @@ interface ConnectivityContextType {
 	machines: Machine[];
 }
 
-const ConnectivityContext = createContext<ConnectivityContextType | undefined>(
-	undefined
-);
+const ConnectivityContext = createContext<ConnectivityContextType | undefined>(undefined);
 
 interface ConnectivityProviderProps {
 	children: ReactNode;
 }
 
-export const ConnectivityProvider: React.FC<ConnectivityProviderProps> = ({
-	children,
-}) => {
+export const ConnectivityProvider: React.FC<ConnectivityProviderProps> = ({ children }) => {
 	const { addCredential, loadCredentials } = useCredentials();
 	const [url, setUrl] = useState("");
 	const [key, setKey] = useState("");
-	const [connectionStatus, setConnectionStatus] =
-		useState<ConnectionStatus>("disconnected");
+	const [connectionStatus, setConnectionStatus] = useState<ConnectionStatus>("disconnected");
 	const router = useRouter();
 	const [socket, setSocket] = useState<WebSocket | null>(null);
-	const [lastTranscribedMessage, setLastTranscribedMessage] =
-		useState<Message | null>(null);
+	const [lastTranscribedMessage, setLastTranscribedMessage] = useState<Message | null>(null);
 	const [machines, setMachines] = useState<Machine[]>([]);
 
 	useEffect(() => {
@@ -88,6 +76,7 @@ export const ConnectivityProvider: React.FC<ConnectivityProviderProps> = ({
 		setConnectionStatus("connecting");
 
 		const newSocket = new WebSocket(url, key);
+
 		setSocket(newSocket);
 
 		// Connection opened
@@ -111,9 +100,7 @@ export const ConnectivityProvider: React.FC<ConnectivityProviderProps> = ({
 						addCredential(url, key)
 							.then(() => router.replace("/(tabs)/record"))
 							.then(() => console.log("Connection Successful"))
-							.catch((error) =>
-								console.error("Error: saving credentials: ", error)
-							);
+							.catch((error) => console.error("Error: saving credentials: ", error));
 					} else {
 						throw new Error("Authentication failed");
 					}
@@ -147,6 +134,7 @@ export const ConnectivityProvider: React.FC<ConnectivityProviderProps> = ({
 			});
 
 			newSocket.addEventListener("close", (event) => {
+				console.warn(`CLOSE CODE ${event.code}`);
 				if (event.code === 1000) {
 					console.log(
 						`WebSocket connection closed cleanly, code=${event.code}, reason=${event.reason}`
@@ -154,7 +142,14 @@ export const ConnectivityProvider: React.FC<ConnectivityProviderProps> = ({
 				} else if (event.code === 4001) {
 					console.error("Route rejected - check for typos code=4001");
 					Alert.alert("Route rejected - check for typos");
+				} else if (event.code === 4002) {
+					console.error("API Key rejected - check for typos code=4001");
+					Alert.alert("API Key rejected - check for typos");
+				} else if (event.code === 4003) {
+					console.error("Mismatch for route and device type - please input user route and API key");
+					Alert.alert("Mismatch for route and device type - please input user route and API key");
 				} else {
+					console.log(event);
 					console.error(
 						`WebSocket connection closed with code=${event.code} and reason ${event.reason}`
 					);
@@ -209,11 +204,7 @@ export const ConnectivityProvider: React.FC<ConnectivityProviderProps> = ({
 		}
 	};
 
-	const sendBinaryMessage = (
-		blob: Blob,
-		filename: string,
-		fileType: string
-	) => {
+	const sendBinaryMessage = (blob: Blob, filename: string, fileType: string) => {
 		if (socket && socket.readyState === WebSocket.OPEN) {
 			const reader = new FileReader();
 			reader.onloadend = () => {
@@ -296,9 +287,7 @@ export const ConnectivityProvider: React.FC<ConnectivityProviderProps> = ({
 export const useConnectivity = (): ConnectivityContextType => {
 	const context = useContext(ConnectivityContext);
 	if (context === undefined) {
-		throw new Error(
-			"useConnectivity must be used within a ConnectivityProvider"
-		);
+		throw new Error("useConnectivity must be used within a ConnectivityProvider");
 	}
 	return context;
 };
